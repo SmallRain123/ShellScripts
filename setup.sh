@@ -105,28 +105,30 @@ main_menu() {
         1 "🐳 安装 Docker 环境 (docker + docker-compose)" \
         2 "🎮 安装 NVIDIA 显卡驱动" \
         3 "📦 安装 NVIDIA Container Toolkit" \
-        4 "⚙️  运行 init.sh 初始化脚本" \
-        5 "📝 自定义脚本名执行" \
-        6 "📋 查看历史执行日志" \
-        7 "🧹 清空日志文件" \
-        0 "🚪 退出工具" \
+        4 "⚙️ 运行 init.sh 初始化脚本" \
+        5 "🐧 下载系统镜像"
+        6 "📝 自定义脚本名执行" \
+        7 "📋 查看历史执行日志" \
+        8 "🧹 清空日志文件" \
+        q "🚪 退出工具" \
         3>&1 1>&2 2>&3)
 
         case "$CHOICE" in
             1) run_script "get-docker.sh" ;;
             2) run_script "nvidia-gpu-setup.sh" ;;
             3) run_script "nvidia-container-toolkit.sh" ;;
-            4) run_script "init.sh" ;;
-            5) input_script ;;
-            6) view_log ;;
-            7) 
+            4) run_script "os.sh";;
+            5) run_script "init.sh" ;;
+            6) input_script ;;
+            7) view_log ;;
+            8) 
                 dialog --title "确认" --yesno "确定要清空日志文件吗？\n日志路径：/tmp/script_run.log" 7 50
                 if [ $? -eq 0 ]; then
                     rm -f "$LOG_FILE"
                     dialog --msgbox "✅ 日志文件已清空！" 5 30
                 fi
                 ;;
-            0) break ;;
+            q) break ;;
             *) dialog --msgbox "无效选项，请重新选择" 5 30 ;;
         esac
     done
