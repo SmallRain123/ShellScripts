@@ -117,8 +117,8 @@ main_menu() {
             1) run_script "get-docker.sh" ;;
             2) run_script "nvidia-gpu-setup.sh" ;;
             3) run_script "nvidia-container-toolkit.sh" ;;
-            4) run_script "os.sh";;
-            5) run_script "init.sh" ;;
+            4) run_script "init.sh";;
+            5) run_script "os.sh" ;;
             6) input_script ;;
             7) view_log ;;
             8) 

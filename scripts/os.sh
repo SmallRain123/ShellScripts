@@ -5,18 +5,28 @@
 # 依赖：curl wget dialog（脚本会自动安装）
 # ===============================================================
 
+# 设置语言环境避免乱码
+export LANG=C LC_ALL=C
+
 # 国内镜像源（阿里云，速度最快）
 MIRROR="https://mirrors.aliyun.com"
 
 # 检查依赖
 check_deps() {
-    if ! command -v dialog &> /dev/null || ! command -v wget &> /dev/null; then
-        echo "正在安装依赖工具..."
+    local MISSING=""
+    for cmd in dialog wget curl; do
+        if ! command -v "$cmd" &> /dev/null; then
+            MISSING="$MISSING $cmd"
+        fi
+    done
+
+    if [ -n "$MISSING" ]; then
+        echo "正在安装依赖工具$MISSING..."
         if [ -f /etc/debian_version ]; then
             apt update >/dev/null 2>&1
-            apt install -y dialog wget curl >/dev/null 2>&1
+            apt install -y$MISSING >/dev/null 2>&1
         elif [ -f /etc/redhat-release ]; then
-            yum install -y dialog wget curl >/dev/null 2>&1
+            yum install -y$MISSING >/dev/null 2>&1
         fi
     fi
 }
@@ -32,12 +42,21 @@ download_iso() {
     echo "  开始下载：$NAME"
     echo "  保存为：$FILE"
     echo "============================================="
-    wget -c --show-progress "$URL" -O "$FILE"
 
-    if [ -f "$FILE" ]; then
-        echo -e "\n✅ 下载完成：$FILE"
+    if ! wget -c --show-progress "$URL" -O "$FILE"; then
+        echo -e "\n[错误] 下载失败，请检查网络或镜像地址"
+        rm -f "$FILE"
+        read -p "按回车返回主菜单"
+        return 1
+    fi
+
+    if [ -f "$FILE" ] && [ -s "$FILE" ]; then
+        echo -e "\n[成功] 下载完成：$FILE"
     else
-        echo -e "\n❌ 下载失败！"
+        echo -e "\n[错误] 下载文件异常"
+        rm -f "$FILE"
+        read -p "按回车返回主菜单"
+        return 1
     fi
     read -p "按回车返回主菜单"
 }
@@ -53,7 +72,7 @@ ubuntu_menu() {
     read -p "请选择版本：" ub_ver
 
     case $ub_ver in
-        1) download_iso "Ubuntu 22.04" "${MIRROR}/ubuntu-releases/22.04/ubuntu-22.04.3-live-server-amd64.iso" ;;
+        1) download_iso "Ubuntu 22.04" "${MIRROR}/ubuntu-releases/22.04/ubuntu-22.04.4-live-server-amd64.iso" ;;
         2) download_iso "Ubuntu 20.04" "${MIRROR}/ubuntu-releases/20.04/ubuntu-20.04.6-live-server-amd64.iso" ;;
         3) download_iso "Ubuntu 18.04" "${MIRROR}/ubuntu-releases/18.04/ubuntu-18.04.6-live-server-amd64.iso" ;;
         0) return ;;
@@ -72,8 +91,8 @@ debian_menu() {
     read -p "请选择版本：" de_ver
 
     case $de_ver in
-        1) download_iso "Debian 12" "${MIRROR}/debian-cd/current/amd64/iso-cd/debian-12.5.0-amd64-netinst.iso" ;;
-        2) download_iso "Debian 11" "${MIRROR}/debian-cd/11.8.0/amd64/iso-cd/debian-11.8.0-amd64-netinst.iso" ;;
+        1) download_iso "Debian 12" "${MIRROR}/debian-cd/current/amd64/iso-cd/debian-12.7.0-amd64-netinst.iso" ;;
+        2) download_iso "Debian 11" "${MIRROR}/debian-cd/11.9.0/amd64/iso-cd/debian-11.9.0-amd64-netinst.iso" ;;
         3) download_iso "Debian 10" "${MIRROR}/debian-cd/10.13.0/amd64/iso-cd/debian-10.13.0-amd64-netinst.iso" ;;
         0) return ;;
         *) echo "无效选项！" && sleep 1 ;;
@@ -90,7 +109,7 @@ centos_menu() {
     read -p "请选择版本：" ce_ver
 
     case $ce_ver in
-        1) download_iso "CentOS 7" "${MIRROR}/centos-vault/7.9.2009/isos/x86_64/CentOS-7-x86_64-Minimal-2009.iso" ;;
+        1) download_iso "CentOS 7" "${MIRROR}/centos/7.9.2009/isos/x86_64/CentOS-7-x86_64-Minimal-2009.iso" ;;
         2) download_iso "CentOS Stream 9" "${MIRROR}/centos-stream/9-stream/BaseOS/x86_64/iso/CentOS-Stream-9-latest-x86_64-dvd1.iso" ;;
         0) return ;;
         *) echo "无效选项！" && sleep 1 ;;
